@@ -1,0 +1,19 @@
+FROM alpine:edge AS builder
+
+ARG tag
+
+RUN apk add git make g++\
+	libuv-static libuv-dev\
+	zlib-static zlib-dev\
+	lz4-static lz4-dev
+
+RUN git clone https://github.com/unknownbrackets/maxcso build
+WORKDIR /build
+RUN git checkout tags/${tag}
+RUN CFLAGS="-static -s" make -j
+
+FROM scratch
+COPY --from=builder /build/maxcso /maxcso
+
+ENTRYPOINT ["/maxcso"]
+
